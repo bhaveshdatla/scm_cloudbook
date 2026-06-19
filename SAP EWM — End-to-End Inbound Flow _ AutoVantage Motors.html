@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<!-- saved from url=(0060)file:///C:/Users/Admin/Downloads/ewm_e2e_inbound_flow_1.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP EWM — End-to-End Inbound Flow | AutoVantage Motors</title>
+<style>
+  :root{
+    --navy:#1B2A41; --navy-dark:#121D2E; --steel:#415A77; --amber:#E8923C; --amber-dark:#B86A1F;
+    --ice:#E8EDF2; --white:#FFFFFF; --text-dark:#1B2A41; --text-muted:#5A6B7D;
+    --green:#3B7A45; --green-bg:#E8F2EA; --red:#B0392F; --red-bg:#F7E9E7; --gray-bg:#F3F1EC;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:Calibri,Arial,sans-serif; background:var(--navy-dark); color:var(--text-dark);
+    min-height:100vh; padding:24px 16px 48px;
+  }
+  .page{max-width:900px;margin:0 auto}
+  header{text-align:center;padding:18px 0 26px;color:#fff}
+  header .kicker{font-size:13px;letter-spacing:3px;color:var(--amber);font-weight:700;margin-bottom:8px}
+  header h1{font-size:26px;font-weight:700;margin-bottom:6px}
+  header p{font-size:14px;color:#C8D2DC}
+
+  .scene-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;justify-content:center}
+  .scene-nav button{font-size:12px;padding:6px 13px;border-radius:20px;border:1px solid #3A4F68;background:#1E2E45;color:#C8D2DC;cursor:pointer;transition:all .2s;white-space:nowrap}
+  .scene-nav button.active{background:var(--amber);color:var(--navy-dark);border-color:var(--amber);font-weight:700}
+  .scene-nav button:hover:not(.active){background:#2A3D56}
+
+  .progress-bar{height:4px;background:#2A3D56;border-radius:2px;margin-bottom:18px;overflow:hidden}
+  .progress-fill{height:100%;background:var(--amber);border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+  .stage-area{position:relative;width:100%;background:var(--gray-bg);border-radius:14px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+  .stage-svg{width:100%;display:block}
+
+  .info-panel{padding:20px 24px 18px;background:var(--white)}
+  .info-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:10px}
+  .step-badge{min-width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+  .info-title{font-size:18px;font-weight:700;color:var(--navy);line-height:1.3}
+  .info-sub{font-size:13px;color:var(--text-muted);margin-top:3px}
+  .info-body{font-size:14px;color:var(--text-muted);line-height:1.65;margin-bottom:12px}
+  .detail-pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+  .pill{font-size:12px;padding:4px 11px;border-radius:14px;font-weight:600;border:1px solid}
+  .pill-blue{background:#E6F1FB;color:#0C447C;border-color:#B5D4F4}
+  .pill-teal{background:#E1F5EE;color:#085041;border-color:#9FE1CB}
+  .pill-amber{background:#FAEEDA;color:#633806;border-color:#FAC775}
+  .pill-green{background:#EAF3DE;color:#173404;border-color:#C0DD97}
+  .pill-purple{background:#EEEDFE;color:#3C3489;border-color:#CECBF6}
+  .pill-coral{background:#FAECE7;color:#4A1B0C;border-color:#F5C4B3}
+  .pill-gray{background:#F1EFE8;color:#2C2C2A;border-color:#D3D1C7}
+
+  .nav-btns{display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:1px solid #E3E3DC;padding-top:14px}
+  .nav-btn{font-size:14px;padding:9px 20px;border-radius:8px;border:1px solid #C8D2DC;background:#fff;color:var(--navy);cursor:pointer;transition:all .2s}
+  .nav-btn:hover{background:var(--ice)}
+  .nav-btn:disabled{opacity:.35;cursor:not-allowed}
+  .nav-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .nav-btn.primary:hover{background:var(--navy-dark)}
+  .step-counter{font-size:13px;color:var(--text-muted)}
+
+  footer{text-align:center;color:#7A8AA0;font-size:12px;margin-top:24px}
+
+  @keyframes appear{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+  @keyframes flow-dash{to{stroke-dashoffset:-24}}
+  .anim-appear{animation:appear .5s ease both}
+  .anim-pop{animation:pop .4s cubic-bezier(.4,0,.2,1) both}
+  .anim-flow{animation:flow-dash 1s linear infinite}
+
+  @media (max-width:600px){
+    header h1{font-size:20px}
+    .info-title{font-size:16px}
+    .nav-btn{padding:8px 14px;font-size:13px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="kicker">SCM CLOUDBOOK · SAP EWM</div>
+    <h1>End-to-end inbound flow — AutoVantage Motors</h1>
+    <p>Module 10 capstone scenario · PO 4500001234 → Tata Motors availability</p>
+  </header>
+
+  <div class="scene-nav">
+    <button onclick="goTo(0)" id="nb0" class="active">1 · PO</button>
+    <button onclick="goTo(1)" id="nb1">2 · Delivery</button>
+    <button onclick="goTo(2)" id="nb2">3 · EWM</button>
+    <button onclick="goTo(3)" id="nb3">4 · GR</button>
+    <button onclick="goTo(4)" id="nb4">5 · ERP doc</button>
+    <button onclick="goTo(5)" id="nb5">6 · F1 stock</button>
+    <button onclick="goTo(6)" id="nb6">7 · Putaway</button>
+    <button onclick="goTo(7)" id="nb7">8 · F2 flip</button>
+    <button onclick="goTo(8)" id="nb8">9 · 411 post</button>
+    <button onclick="goTo(9)" id="nb9">10 · Avail.</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:10%"></div></div>
+
+  <div class="stage-area">
+    <svg id="scene-svg" class="stage-svg" viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </marker>
+      </defs>
+      <g id="scene-content">
+    <rect x="40" y="30" width="600" height="250" rx="12" fill="#F9F8F4" stroke="#D3D1C7" stroke-width="0.5"></rect>
+    <text font-family="sans-serif" font-size="11" fill="#888" x="56" y="52">ERP S/4HANA · Plant AVCK</text>
+    <g class="anim-appear" style="animation-delay:.1s">
+      <rect x="80" y="70" width="200" height="80" rx="8" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"></rect>
+      <text font-family="sans-serif" font-size="13" font-weight="500" fill="#0C447C" x="180" y="98" text-anchor="middle">Purchase Order</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="180" y="116" text-anchor="middle">4500001234</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="180" y="132" text-anchor="middle">Bharat Forge → AVCK</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.3s">
+      <rect x="340" y="70" width="160" height="52" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"></rect>
+      <text font-family="sans-serif" font-size="13" font-weight="500" fill="#633806" x="420" y="94" text-anchor="middle">Material</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="420" y="112" text-anchor="middle">EC-1042 · 200 EA</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="340" y="140" width="160" height="52" rx="8" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="0.5"></rect>
+      <text font-family="sans-serif" font-size="13" font-weight="500" fill="#085041" x="420" y="164" text-anchor="middle">Vendor</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="420" y="182" text-anchor="middle">Bharat Forge (BF001)</text>
+    </g>
+    <line x1="280" y1="96" x2="338" y2="96" stroke="#B5D4F4" stroke-width="1.5" marker-end="url(#arr)" fill="none"></line>
+    <line x1="280" y1="116" x2="338" y2="166" stroke="#9FE1CB" stroke-width="1.5" marker-end="url(#arr)" fill="none"></line>
+    <rect x="80" y="200" width="200" height="44" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5" class="anim-appear" style="animation-delay:.6s"></rect>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="180" y="219" text-anchor="middle" class="anim-appear" style="animation-delay:.6s">Storage Loc: ROD</text>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="180" y="234" text-anchor="middle" class="anim-appear" style="animation-delay:.6s">Purch. Org: AVPO</text>
+    <text font-family="sans-serif" font-size="11" fill="#185FA5" x="555" y="275" text-anchor="end" class="anim-appear" style="animation-delay:.7s">T-Code: ME21N</text>
+  </g>
+    </svg>
+
+    <div class="info-panel">
+      <div class="info-header">
+        <div class="step-badge" id="i-badge" style="background: rgb(230, 241, 251); color: rgb(24, 95, 165);">1</div>
+        <div>
+          <div class="info-title" id="i-title">Purchase Order created (ME21N)</div>
+          <div class="info-sub" id="i-sub">ERP · Chakan plant · Procurement phase</div>
+        </div>
+      </div>
+      <div class="detail-pills" id="i-pills"><span class="pill pill-blue">PO 4500001234</span><span class="pill pill-purple">ME21N</span><span class="pill pill-amber">EC-1042 · 200 EA</span><span class="pill pill-teal">Bharat Forge</span></div>
+      <div class="info-body" id="i-body">Bharat Forge Ltd. has a confirmed Purchase Order for 200 engine casings (EC-1042). The PO is raised under plant AVCK with Purchase Org AVPO, with storage location ROD pre-specified. This is the commercial trigger — everything downstream flows from this document.</div>
+      <div class="nav-btns">
+        <button class="nav-btn" id="btn-prev" onclick="prev()" disabled="">← Previous</button>
+        <span class="step-counter" id="step-ctr">Step 1 of 10</span>
+        <button class="nav-btn primary" id="btn-next" onclick="next()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>SCM Cloudbook · SAP EWM Integration with ERP · v1.0 — Standardised June 2026</footer>
+</div>
+
+<script>
+const STEPS=[
+{
+  title:"Purchase Order created (ME21N)",
+  sub:"ERP · Chakan plant · Procurement phase",
+  badge:{bg:"#E6F1FB",col:"#185FA5",txt:"1"},
+  pills:[{t:"PO 4500001234",c:"blue"},{t:"ME21N",c:"purple"},{t:"EC-1042 · 200 EA",c:"amber"},{t:"Bharat Forge",c:"teal"}],
+  body:"Bharat Forge Ltd. has a confirmed Purchase Order for 200 engine casings (EC-1042). The PO is raised under plant AVCK with Purchase Org AVPO, with storage location ROD pre-specified. This is the commercial trigger — everything downstream flows from this document.",
+  svg:`
+    <rect x="40" y="30" width="600" height="250" rx="12" fill="#F9F8F4" stroke="#D3D1C7" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#888" x="56" y="52">ERP S/4HANA · Plant AVCK</text>
+    <g class="anim-appear" style="animation-delay:.1s">
+      <rect x="80" y="70" width="200" height="80" rx="8" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="13" font-weight="500" fill="#0C447C" x="180" y="98" text-anchor="middle">Purchase Order</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="180" y="116" text-anchor="middle">4500001234</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="180" y="132" text-anchor="middle">Bharat Forge → AVCK</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.3s">
+      <rect x="340" y="70" width="160" height="52" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="13" font-weight="500" fill="#633806" x="420" y="94" text-anchor="middle">Material</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="420" y="112" text-anchor="middle">EC-1042 · 200 EA</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="340" y="140" width="160" height="52" rx="8" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="13" font-weight="500" fill="#085041" x="420" y="164" text-anchor="middle">Vendor</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="420" y="182" text-anchor="middle">Bharat Forge (BF001)</text>
+    </g>
+    <line x1="280" y1="96" x2="338" y2="96" stroke="#B5D4F4" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+    <line x1="280" y1="116" x2="338" y2="166" stroke="#9FE1CB" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+    <rect x="80" y="200" width="200" height="44" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5" class="anim-appear" style="animation-delay:.6s"/>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="180" y="219" text-anchor="middle" class="anim-appear" style="animation-delay:.6s">Storage Loc: ROD</text>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="180" y="234" text-anchor="middle" class="anim-appear" style="animation-delay:.6s">Purch. Org: AVPO</text>
+    <text font-family="sans-serif" font-size="11" fill="#185FA5" x="555" y="275" text-anchor="end" class="anim-appear" style="animation-delay:.7s">T-Code: ME21N</text>
+  `
+},
+{
+  title:"Inbound Delivery created (VL31N)",
+  sub:"ERP · Distribution to EWM triggered on Save",
+  badge:{bg:"#E1F5EE",col:"#0F6E56",txt:"2"},
+  pills:[{t:"Delivery 1800000001",c:"teal"},{t:"VL31N",c:"purple"},{t:"Delivery type EL",c:"blue"},{t:"→ EWM auto",c:"green"}],
+  body:"Referencing PO 4500001234, an Inbound Delivery (type EL) is created in ERP with today's GR date and quantity 200 EA. The moment the delivery is SAVED, the EWM distribution model (BD64) fires automatically and distributes the delivery to warehouse AV01 via RFC.",
+  svg:`
+    <rect x="40" y="20" width="280" height="270" rx="12" fill="#F5FBF8" stroke="#9FE1CB" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="56" y="42">ERP S/4HANA</text>
+    <rect x="380" y="20" width="260" height="270" rx="12" fill="#F9F8F4" stroke="#D3D1C7" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#888" x="396" y="42">EWM Warehouse AV01</text>
+    <g class="anim-appear" style="animation-delay:.1s">
+      <rect x="68" y="58" width="220" height="68" rx="8" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="13" font-weight="500" fill="#085041" x="178" y="84" text-anchor="middle">Inbound Delivery</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="178" y="102" text-anchor="middle">1800000001 · Qty 200</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="178" y="117" text-anchor="middle">Storage Loc: ROD</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.3s">
+      <rect x="68" y="152" width="220" height="52" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#3C3489" x="178" y="174" text-anchor="middle">BD64 Distribution</text>
+      <text font-family="sans-serif" font-size="11" fill="#534AB7" x="178" y="191" text-anchor="middle">Fires on SAVE via RFC</text>
+    </g>
+    <line x1="178" y1="126" x2="178" y2="150" stroke="#9FE1CB" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+    <path d="M290 178 Q335 178 380 178" stroke="#534AB7" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arr)" class="anim-flow"/>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="396" y="140" width="220" height="68" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="13" font-weight="500" fill="#3C3489" x="506" y="166" text-anchor="middle">Delivery received</text>
+      <text font-family="sans-serif" font-size="11" fill="#534AB7" x="506" y="184" text-anchor="middle">in EWM · Status: Distributed</text>
+      <text font-family="sans-serif" font-size="11" fill="#534AB7" x="506" y="200" text-anchor="middle">Verify: /SCWM/MON</text>
+    </g>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="336" y="170" text-anchor="middle">RFC</text>
+    <g class="anim-appear" style="animation-delay:.2s">
+      <rect x="68" y="226" width="220" height="44" rx="8" fill="#F9F8F4" stroke="#D3D1C7" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="11" fill="#5F5E5A" x="178" y="247" text-anchor="middle">Ref PO: 4500001234</text>
+      <text font-family="sans-serif" font-size="11" fill="#5F5E5A" x="178" y="262" text-anchor="middle">Delivery type: EL · GR today</text>
+    </g>
+  `
+},
+{
+  title:"EWM receives the delivery — verify in /SCWM/MON",
+  sub:"EWM Warehouse Monitor · Distribution check",
+  badge:{bg:"#EEEDFE",col:"#534AB7",txt:"3"},
+  pills:[{t:"/SCWM/MON",c:"purple"},{t:"Status: Distributed",c:"green"},{t:"Check SMQ1",c:"amber"}],
+  body:"Open /SCWM/MON → Inbound Delivery tab and search delivery 1800000001. Status must show 'Distributed'. If missing after 2–3 minutes, check SMQ1 for stuck queues in WMEINB. A blocked queue here means no warehouse tasks will be generated.",
+  svg:`
+    <rect x="40" y="20" width="600" height="270" rx="12" fill="#FAF9FF" stroke="#CECBF6" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="56" y="40">/SCWM/MON — Warehouse Monitor · AV01</text>
+    <rect x="60" y="52" width="560" height="36" rx="6" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="12" font-weight="500" fill="#3C3489" x="340" y="74" text-anchor="middle">Inbound Deliveries tab</text>
+    <g class="anim-appear" style="animation-delay:.2s">
+      <rect x="60" y="102" width="560" height="44" rx="6" fill="#EAF3DE" stroke="#C0DD97" stroke-width="1"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#27500A" x="180" y="128" text-anchor="middle">1800000001</text>
+      <text font-family="sans-serif" font-size="12" fill="#3B6D11" x="340" y="128" text-anchor="middle">EC-1042 · 200 EA · ROD</text>
+      <rect x="500" y="110" width="106" height="26" rx="13" fill="#3B6D11"/>
+      <text font-family="sans-serif" font-size="11" font-weight="500" fill="#EAF3DE" x="553" y="127" text-anchor="middle">✓ Distributed</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="60" y="166" width="270" height="90" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#633806" x="195" y="188" text-anchor="middle">⚠ If NOT visible:</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="195" y="207" text-anchor="middle">Check SMQ1 → WMEINB</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="195" y="224" text-anchor="middle">queue for errors</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="195" y="241" text-anchor="middle">Also verify BD64 distribution</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.6s">
+      <rect x="350" y="166" width="270" height="90" rx="8" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#0C447C" x="485" y="188" text-anchor="middle">Next action:</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="485" y="207" text-anchor="middle">Post Goods Receipt in EWM</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="485" y="224" text-anchor="middle">Transaction: /SCWM/GR</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="485" y="241" text-anchor="middle">Dock door: D02</text>
+    </g>
+  `
+},
+{
+  title:"Goods Receipt posted in EWM (/SCWM/GR)",
+  sub:"EWM · Dock D02 · Stock type F1 created",
+  badge:{bg:"#FAEEDA",col:"#BA7517",txt:"4"},
+  pills:[{t:"/SCWM/GR",c:"amber"},{t:"Dock D02",c:"teal"},{t:"GR Zone bin 9010-GRBIN01",c:"blue"},{t:"WT generated",c:"green"}],
+  body:"The warehouse operative selects delivery 1800000001 in /SCWM/GR, enters Qty 200 at Dock D02 and posts the GR. EWM immediately creates a putaway Warehouse Task from GR Zone bin 9010-GRBIN01 to the final Zone B bin. Stock type is now F1 (ROD).",
+  svg:`
+    <rect x="40" y="16" width="600" height="278" rx="12" fill="#FFFBF4" stroke="#FAC775" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#BA7517" x="56" y="36">EWM · Goods Receipt · /SCWM/GR</text>
+    <g class="anim-appear">
+      <rect x="54" y="50" width="90" height="48" rx="6" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+      <rect x="54" y="50" width="34" height="36" rx="4" fill="#B4B2A9"/>
+      <text font-family="sans-serif" font-size="9" fill="#2C2C2A" x="99" y="77" text-anchor="middle">Bharat Forge</text>
+      <circle cx="70" cy="98" r="8" fill="#444441"/>
+      <circle cx="70" cy="98" r="4" fill="#D3D1C7"/>
+      <circle cx="128" cy="98" r="8" fill="#444441"/>
+      <circle cx="128" cy="98" r="4" fill="#D3D1C7"/>
+    </g>
+    <rect x="166" y="44" width="16" height="62" rx="4" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="10" fill="#BA7517" x="174" y="90" text-anchor="middle" transform="rotate(-90,174,90)">Dock D02</text>
+    <g class="anim-appear" style="animation-delay:.3s">
+      <rect x="196" y="44" width="160" height="120" rx="8" fill="#EAF3DE" stroke="#C0DD97" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="11" font-weight="500" fill="#27500A" x="276" y="66" text-anchor="middle">GR Zone</text>
+      <text font-family="sans-serif" font-size="10" fill="#3B6D11" x="276" y="82" text-anchor="middle">9010-GRBIN01</text>
+      <rect x="222" y="94" width="108" height="54" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="11" font-weight="500" fill="#633806" x="276" y="117" text-anchor="middle">EC-1042</text>
+      <text font-family="sans-serif" font-size="10" fill="#BA7517" x="276" y="133" text-anchor="middle">200 EA · F1</text>
+    </g>
+    <path d="M182 78 L194 78" stroke="#BA7517" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="384" y="44" width="230" height="78" rx="8" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#0C447C" x="499" y="70" text-anchor="middle">Warehouse Task (WT)</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="499" y="88" text-anchor="middle">Putaway: GR Zone → Zone B</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="499" y="104" text-anchor="middle">Assigned · Awaiting confirm</text>
+    </g>
+    <line x1="358" y1="80" x2="382" y2="80" stroke="#B5D4F4" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+    <g class="anim-appear" style="animation-delay:.4s">
+      <rect x="196" y="188" width="418" height="80" rx="8" fill="#FAECE7" stroke="#F5C4B3" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#4A1B0C" x="405" y="210" text-anchor="middle">What happened in ERP (background):</text>
+      <text font-family="sans-serif" font-size="11" fill="#993C1D" x="405" y="229" text-anchor="middle">GR Mvt type 101 posted · Stock now in ROD storage location</text>
+      <text font-family="sans-serif" font-size="11" fill="#993C1D" x="405" y="248" text-anchor="middle">Balance-sheet visible · NOT available for Tata Motors orders</text>
+    </g>
+  `
+},
+{
+  title:"Verify ERP material document (MIGO / MMBE)",
+  sub:"ERP · Movement type 101 · ROD stock visible",
+  badge:{bg:"#EAF3DE",col:"#3B6D11",txt:"5"},
+  pills:[{t:"Mvt type 101",c:"green"},{t:"MIGO",c:"purple"},{t:"MMBE",c:"blue"},{t:"ROD = 200 EA",c:"teal"},{t:"AFS = 0",c:"coral"}],
+  body:"Back in ERP, a material document (movement type 101) has been automatically created. MMBE shows EC-1042: 200 EA under storage location ROD. AFS is still zero — Tata Motors cannot confirm against this stock yet. The finance team can see it on the balance sheet.",
+  svg:`
+    <rect x="40" y="16" width="600" height="278" rx="12" fill="#F3FAF0" stroke="#C0DD97" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="56" y="36">ERP · MMBE Stock Overview · Plant AVCK</text>
+    <rect x="60" y="52" width="560" height="30" rx="4" fill="#EAF3DE" stroke="#C0DD97" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#27500A" x="110" y="71">Material</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#27500A" x="280" y="71">Storage Loc</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#27500A" x="440" y="71">Unrestricted</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#27500A" x="560" y="71">Status</text>
+    <g class="anim-appear" style="animation-delay:.2s">
+      <rect x="60" y="84" width="560" height="44" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" fill="#185FA5" x="110" y="110">EC-1042</text>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#185FA5" x="280" y="110" text-anchor="middle">ROD</text>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#185FA5" x="440" y="110" text-anchor="middle">200 EA</text>
+      <rect x="510" y="94" width="96" height="24" rx="12" fill="#185FA5"/>
+      <text font-family="sans-serif" font-size="11" fill="#fff" x="558" y="110" text-anchor="middle">Balance sheet ✓</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.3s">
+      <rect x="60" y="132" width="560" height="44" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" fill="#888780" x="110" y="158">EC-1042</text>
+      <text font-family="sans-serif" font-size="12" fill="#888780" x="280" y="158" text-anchor="middle">AFS</text>
+      <text font-family="sans-serif" font-size="12" fill="#888780" x="440" y="158" text-anchor="middle">0 EA</text>
+      <rect x="510" y="142" width="96" height="24" rx="12" fill="#D3D1C7"/>
+      <text font-family="sans-serif" font-size="11" fill="#5F5E5A" x="558" y="158" text-anchor="middle">No ATP yet</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="60" y="196" width="270" height="70" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#633806" x="195" y="218" text-anchor="middle">Material document</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="195" y="236" text-anchor="middle">Mvt type 101 · GR</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="195" y="254" text-anchor="middle">T-Code: MIGO to verify</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.6s">
+      <rect x="350" y="196" width="270" height="70" rx="8" fill="#FAECE7" stroke="#F5C4B3" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#4A1B0C" x="485" y="218" text-anchor="middle">Tata Motors — Sales</text>
+      <text font-family="sans-serif" font-size="11" fill="#993C1D" x="485" y="236" text-anchor="middle">Cannot confirm orders yet</text>
+      <text font-family="sans-serif" font-size="11" fill="#993C1D" x="485" y="254" text-anchor="middle">Stock is in ROD (F1 group)</text>
+    </g>
+  `
+},
+{
+  title:"Verify stock in /SCWM/MON — type F1",
+  sub:"EWM Monitor · GR Zone bin · Availability group 001",
+  badge:{bg:"#EEEDFE",col:"#534AB7",txt:"6"},
+  pills:[{t:"Stock type F1",c:"purple"},{t:"9010-GRBIN01",c:"blue"},{t:"PED: AVCKPED",c:"teal"},{t:"Awaiting putaway",c:"amber"}],
+  body:"/SCWM/MON shows EC-1042 in bin 9010-GRBIN01, quantity 200 EA, stock type F1 (maps to availability group 001 = ROD). Owner and Party Entitled to Dispose are both AVCKPED — AutoVantage owns the stock immediately on procurement receipt.",
+  svg:`
+    <rect x="40" y="16" width="600" height="278" rx="12" fill="#FAF9FF" stroke="#CECBF6" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="56" y="36">/SCWM/MON · Bin Content View · AV01</text>
+    <rect x="60" y="52" width="560" height="30" rx="4" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="130" y="71">Bin</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="260" y="71">Material</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="370" y="71">Qty</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="450" y="71">St.Type</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="560" y="71">PED</text>
+    <g class="anim-appear" style="animation-delay:.2s">
+      <rect x="60" y="84" width="560" height="44" rx="6" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" fill="#534AB7" x="130" y="110">9010-GRBIN01</text>
+      <text font-family="sans-serif" font-size="12" fill="#534AB7" x="260" y="110">EC-1042</text>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#534AB7" x="370" y="110">200</text>
+      <rect x="418" y="92" width="52" height="24" rx="12" fill="#534AB7"/>
+      <text font-family="sans-serif" font-size="11" fill="#fff" x="444" y="108" text-anchor="middle">F1</text>
+      <text font-family="sans-serif" font-size="11" fill="#534AB7" x="560" y="110">AVCKPED</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.4s">
+      <rect x="60" y="154" width="180" height="90" rx="8" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#085041" x="150" y="176" text-anchor="middle">F1 = Group 001</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="150" y="196" text-anchor="middle">ROD storage loc.</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="150" y="214" text-anchor="middle">Not ATP-relevant</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="150" y="232" text-anchor="middle">Balance sheet visible</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="258" y="154" width="180" height="90" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#633806" x="348" y="176" text-anchor="middle">Putaway WT</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="348" y="196" text-anchor="middle">Open in system</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="348" y="214" text-anchor="middle">Waiting for RF scan</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="348" y="232" text-anchor="middle">/SCWM/TO to confirm</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.6s">
+      <rect x="456" y="154" width="164" height="90" rx="8" fill="#FAECE7" stroke="#F5C4B3" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#4A1B0C" x="538" y="176" text-anchor="middle">Owner info</text>
+      <text font-family="sans-serif" font-size="11" fill="#993C1D" x="538" y="196" text-anchor="middle">PED: AVCKPED</text>
+      <text font-family="sans-serif" font-size="11" fill="#993C1D" x="538" y="214" text-anchor="middle">Owner: AVCKPED</text>
+      <text font-family="sans-serif" font-size="11" fill="#993C1D" x="538" y="232" text-anchor="middle">Direct procurement</text>
+    </g>
+  `
+},
+{
+  title:"Putaway confirmed (/SCWM/TO)",
+  sub:"EWM · Zone B bin B-003-001 · RF scanner simulate",
+  badge:{bg:"#E1F5EE",col:"#0F6E56",txt:"7"},
+  pills:[{t:"/SCWM/TO",c:"teal"},{t:"Target: B-003-001",c:"blue"},{t:"Zone B Bulk",c:"green"},{t:"Putaway strategy",c:"purple"}],
+  body:"The warehouse task for delivery 1800000001 is opened. The system proposes target bin B-003-001 in Zone B (Bulk) based on the putaway strategy for heavy materials. The operative confirms the task (simulating RF scanner confirmation). This single action triggers two simultaneous events.",
+  svg:`
+    <rect x="40" y="16" width="600" height="278" rx="12" fill="#F2FBF7" stroke="#9FE1CB" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="56" y="36">EWM · Putaway Confirmation · /SCWM/TO</text>
+    <g class="anim-appear" style="animation-delay:.1s">
+      <rect x="60" y="52" width="170" height="110" rx="8" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#085041" x="145" y="76" text-anchor="middle">Source bin</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="145" y="96" text-anchor="middle">9010-GRBIN01</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="145" y="114" text-anchor="middle">GR Zone</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="145" y="132" text-anchor="middle">EC-1042 · 200 EA</text>
+      <rect x="82" y="142" width="126" height="16" rx="8" fill="#534AB7"/>
+      <text font-family="sans-serif" font-size="10" fill="#fff" x="145" y="153" text-anchor="middle">Stock type F1</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.4s">
+      <rect x="260" y="66" width="160" height="80" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#3C3489" x="340" y="91" text-anchor="middle">Putaway strategy</text>
+      <text font-family="sans-serif" font-size="11" fill="#534AB7" x="340" y="109" text-anchor="middle">Heavy bulk → Zone B</text>
+      <text font-family="sans-serif" font-size="11" fill="#534AB7" x="340" y="127" text-anchor="middle">Next empty bin</text>
+    </g>
+    <line x1="230" y1="100" x2="258" y2="100" stroke="#9FE1CB" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+    <line x1="420" y1="100" x2="450" y2="100" stroke="#9FE1CB" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+    <g class="anim-appear" style="animation-delay:.6s">
+      <rect x="452" y="52" width="168" height="110" rx="8" fill="#EAF3DE" stroke="#C0DD97" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#27500A" x="536" y="76" text-anchor="middle">Target bin</text>
+      <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="536" y="96" text-anchor="middle">B-003-001</text>
+      <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="536" y="114" text-anchor="middle">Zone B · Bulk</text>
+      <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="536" y="132" text-anchor="middle">EC-1042 · 200 EA</text>
+      <rect x="474" y="142" width="124" height="16" rx="8" fill="#3B6D11"/>
+      <text font-family="sans-serif" font-size="10" fill="#fff" x="536" y="153" text-anchor="middle">Stock type F2 (now)</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.7s">
+      <rect x="60" y="190" width="560" height="72" rx="8" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#0C447C" x="340" y="212" text-anchor="middle">On confirmation — two events fire simultaneously:</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="340" y="232" text-anchor="middle">① EWM: stock type flips F1 → F2 in bin B-003-001</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="340" y="250" text-anchor="middle">② ERP: movement type 411 transfer posting fires automatically</text>
+    </g>
+  `
+},
+{
+  title:"Stock type flips F1 → F2 in /SCWM/MON",
+  sub:"EWM · Zone B bin B-003-001 · Availability group 002",
+  badge:{bg:"#EAF3DE",col:"#3B6D11",txt:"8"},
+  pills:[{t:"F1 → F2",c:"green"},{t:"B-003-001",c:"blue"},{t:"Group 002",c:"teal"},{t:"GR bin now empty",c:"gray"}],
+  body:"/SCWM/MON now shows EC-1042 in bin B-003-001 with stock type F2 (availability group 002 = AFS). The GR Zone bin 9010-GRBIN01 is empty. This F2 status is what ERP reads as 'Available for Sale'. The putaway is complete inside EWM.",
+  svg:`
+    <rect x="40" y="16" width="600" height="278" rx="12" fill="#FAF9FF" stroke="#CECBF6" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="56" y="36">/SCWM/MON · After putaway confirmation</text>
+    <rect x="60" y="52" width="560" height="30" rx="4" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="130" y="71">Bin</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="260" y="71">Material</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="370" y="71">Qty</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="450" y="71">St.Type</text>
+    <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="560" y="71">Zone</text>
+    <g class="anim-appear" style="animation-delay:.15s">
+      <rect x="60" y="84" width="560" height="44" rx="6" fill="#EAF3DE" stroke="#C0DD97" stroke-width="1"/>
+      <text font-family="sans-serif" font-size="12" fill="#27500A" x="130" y="110">B-003-001</text>
+      <text font-family="sans-serif" font-size="12" fill="#27500A" x="260" y="110">EC-1042</text>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#27500A" x="370" y="110">200</text>
+      <rect x="418" y="92" width="52" height="24" rx="12" fill="#3B6D11"/>
+      <text font-family="sans-serif" font-size="11" fill="#fff" x="444" y="108" text-anchor="middle">F2</text>
+      <text font-family="sans-serif" font-size="11" fill="#27500A" x="560" y="110">Zone B Bulk</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.3s">
+      <rect x="60" y="134" width="560" height="36" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" fill="#888780" x="130" y="157">9010-GRBIN01</text>
+      <text font-family="sans-serif" font-size="11" fill="#B4B2A9" x="280" y="157" text-anchor="middle">—</text>
+      <text font-family="sans-serif" font-size="11" fill="#B4B2A9" x="370" y="157">0</text>
+      <text font-family="sans-serif" font-size="11" fill="#B4B2A9" x="450" y="157">empty</text>
+      <text font-family="sans-serif" font-size="11" fill="#B4B2A9" x="560" y="157">GR Zone</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="60" y="192" width="260" height="72" rx="8" fill="#EAF3DE" stroke="#C0DD97" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#27500A" x="190" y="216" text-anchor="middle">F2 = Availability group 002</text>
+      <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="190" y="236" text-anchor="middle">Maps to AFS storage location</text>
+      <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="190" y="254" text-anchor="middle">ATP-relevant ✓</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.6s">
+      <rect x="340" y="192" width="280" height="72" rx="8" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#0C447C" x="480" y="216" text-anchor="middle">ERP 411 posting</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="480" y="236" text-anchor="middle">Fired automatically to ERP</text>
+      <text font-family="sans-serif" font-size="11" fill="#185FA5" x="480" y="254" text-anchor="middle">ROD → AFS transfer in progress</text>
+    </g>
+  `
+},
+{
+  title:"ERP movement type 411 — ROD to AFS transfer",
+  sub:"ERP background posting · WMEOUT queue · MMBE update",
+  badge:{bg:"#FAEEDA",col:"#BA7517",txt:"9"},
+  pills:[{t:"Mvt type 411",c:"amber"},{t:"ROD → AFS",c:"teal"},{t:"WMEOUT queue",c:"purple"},{t:"MMBE: AFS = 200",c:"green"}],
+  body:"EWM sends the 411 transfer posting to ERP via the outbound WMEOUT queue. No manual action is needed. MMBE now shows: ROD = 0 EA, AFS = 200 EA. If AFS shows 0 after 30s, check SMQ1/SM58 for WMEOUT errors and clear the queue — the posting will replay automatically.",
+  svg:`
+    <rect x="40" y="16" width="280" height="278" rx="12" fill="#FBF9FF" stroke="#CECBF6" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#534AB7" x="56" y="36">EWM</text>
+    <rect x="360" y="16" width="280" height="278" rx="12" fill="#F3FAF0" stroke="#C0DD97" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="376" y="36">ERP S/4HANA</text>
+    <g class="anim-appear" style="animation-delay:.1s">
+      <rect x="68" y="52" width="224" height="56" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#3C3489" x="180" y="76" text-anchor="middle">Putaway confirmed</text>
+      <text font-family="sans-serif" font-size="11" fill="#534AB7" x="180" y="96" text-anchor="middle">B-003-001 · F2 · EC-1042</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.3s">
+      <rect x="68" y="136" width="224" height="56" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#3C3489" x="180" y="158" text-anchor="middle">WMEOUT queue</text>
+      <text font-family="sans-serif" font-size="11" fill="#534AB7" x="180" y="178" text-anchor="middle">411 posting → ERP via RFC</text>
+    </g>
+    <line x1="180" y1="108" x2="180" y2="134" stroke="#CECBF6" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+    <path d="M292 165 Q326 165 358 165" stroke="#BA7517" stroke-width="2.5" stroke-dasharray="6 4" fill="none" marker-end="url(#arr)" class="anim-flow"/>
+    <text font-family="sans-serif" font-size="10" fill="#BA7517" x="325" y="158" text-anchor="middle">411</text>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="376" y="52" width="236" height="72" rx="8" fill="#EAF3DE" stroke="#C0DD97" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#27500A" x="494" y="76" text-anchor="middle">MMBE · Plant AVCK</text>
+      <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="494" y="96" text-anchor="middle">ROD: 0 EA</text>
+      <text font-family="sans-serif" font-size="11" fill="#3B6D11" x="494" y="114" text-anchor="middle">AFS: 200 EA ← updated</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.6s">
+      <rect x="376" y="142" width="236" height="56" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#633806" x="494" y="164" text-anchor="middle">Material document</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="494" y="184" text-anchor="middle">Mvt 411 · ROD→AFS posted</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.7s">
+      <rect x="68" y="218" width="548" height="56" rx="8" fill="#FAECE7" stroke="#F5C4B3" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#4A1B0C" x="342" y="240" text-anchor="middle">Diagnostic: If AFS still 0 after 30s</text>
+      <text font-family="sans-serif" font-size="11" fill="#993C1D" x="342" y="260" text-anchor="middle">Check SMQ1 → SM58 for WMEOUT errors · Clear queue → 411 replays automatically</text>
+    </g>
+  `
+},
+{
+  title:"Tata Motors sales availability confirmed!",
+  sub:"AFS = 200 EA · ATP check passes · Call-off order can be raised",
+  badge:{bg:"#EAF3DE",col:"#3B6D11",txt:"10"},
+  pills:[{t:"AFS = 200 EA",c:"green"},{t:"ATP ✓",c:"teal"},{t:"Tata Motors",c:"blue"},{t:"Happy path complete",c:"purple"}],
+  body:"End-to-end complete. AFS storage location now holds 200 EA of EC-1042 in ERP. The Tata Motors sales coordinator can create a sales order and get a confirmed delivery date against this stock. Every module from 01–09 played its role in making this 10-step journey work seamlessly.",
+  svg:`
+    <rect x="40" y="16" width="600" height="278" rx="12" fill="#F2FBF7" stroke="#9FE1CB" stroke-width="0.5"/>
+    <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="56" y="36">End-to-End Complete · AutoVantage Chakan → Tata Motors Pune</text>
+    <g class="anim-pop" style="animation-delay:.1s">
+      <rect x="60" y="50" width="560" height="50" rx="10" fill="#3B6D11"/>
+      <text font-family="sans-serif" font-size="14" font-weight="500" fill="#EAF3DE" x="340" y="80" text-anchor="middle">✓ AFS Stock: 200 EA EC-1042 · Available to Promise</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.35s">
+      <rect x="60" y="120" width="126" height="64" rx="8" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="11" font-weight="500" fill="#0C447C" x="123" y="144" text-anchor="middle">PO</text>
+      <text font-family="sans-serif" font-size="10" fill="#185FA5" x="123" y="162" text-anchor="middle">4500001234</text>
+    </g>
+    <line x1="188" y1="152" x2="204" y2="152" stroke="#B5D4F4" stroke-width="1" fill="none" marker-end="url(#arr)"/>
+    <g class="anim-appear" style="animation-delay:.4s">
+      <rect x="206" y="120" width="100" height="64" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="11" font-weight="500" fill="#3C3489" x="256" y="144" text-anchor="middle">Delivery</text>
+      <text font-family="sans-serif" font-size="10" fill="#534AB7" x="256" y="162" text-anchor="middle">1800000001</text>
+    </g>
+    <line x1="308" y1="152" x2="322" y2="152" stroke="#CECBF6" stroke-width="1" fill="none" marker-end="url(#arr)"/>
+    <g class="anim-appear" style="animation-delay:.45s">
+      <rect x="324" y="120" width="100" height="64" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="11" font-weight="500" fill="#633806" x="374" y="142" text-anchor="middle">EWM GR</text>
+      <text font-family="sans-serif" font-size="10" fill="#BA7517" x="374" y="160" text-anchor="middle">F1 · Dock D02</text>
+    </g>
+    <line x1="426" y1="152" x2="438" y2="152" stroke="#FAC775" stroke-width="1" fill="none" marker-end="url(#arr)"/>
+    <g class="anim-appear" style="animation-delay:.5s">
+      <rect x="440" y="120" width="106" height="64" rx="8" fill="#EAF3DE" stroke="#C0DD97" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="11" font-weight="500" fill="#27500A" x="493" y="142" text-anchor="middle">Putaway</text>
+      <text font-family="sans-serif" font-size="10" fill="#3B6D11" x="493" y="160" text-anchor="middle">F2 · B-003-001</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.65s">
+      <rect x="60" y="210" width="270" height="64" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#633806" x="195" y="234" text-anchor="middle">411 Transfer posting</text>
+      <text font-family="sans-serif" font-size="11" fill="#BA7517" x="195" y="254" text-anchor="middle">ROD 0 EA → AFS 200 EA</text>
+    </g>
+    <g class="anim-appear" style="animation-delay:.75s">
+      <rect x="350" y="210" width="270" height="64" rx="8" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="1.5"/>
+      <text font-family="sans-serif" font-size="12" font-weight="500" fill="#085041" x="485" y="234" text-anchor="middle">Tata Motors — Order confirmed</text>
+      <text font-family="sans-serif" font-size="11" fill="#0F6E56" x="485" y="254" text-anchor="middle">Sales order ATP check passes ✓</text>
+    </g>
+  `
+}
+];
+
+let cur=0;
+function render(i){
+  const s=STEPS[i];
+  document.getElementById('scene-content').innerHTML=s.svg;
+  document.getElementById('i-badge').style.cssText=`background:${s.badge.bg};color:${s.badge.col}`;
+  document.getElementById('i-badge').textContent=s.badge.txt;
+  document.getElementById('i-title').textContent=s.title;
+  document.getElementById('i-sub').textContent=s.sub;
+  document.getElementById('i-body').textContent=s.body;
+  const pc=document.getElementById('i-pills');
+  pc.innerHTML=s.pills.map(p=>`<span class="pill pill-${p.c}">${p.t}</span>`).join('');
+  document.getElementById('prog').style.width=((i+1)/STEPS.length*100)+'%';
+  document.getElementById('step-ctr').textContent=`Step ${i+1} of ${STEPS.length}`;
+  document.getElementById('btn-prev').disabled=i===0;
+  document.getElementById('btn-next').disabled=i===STEPS.length-1;
+  document.getElementById('btn-next').textContent=i===STEPS.length-1?'Complete ✓':'Next →';
+  for(let j=0;j<STEPS.length;j++){
+    document.getElementById('nb'+j).classList.toggle('active',j===i);
+  }
+}
+function goTo(i){cur=i;render(i);}
+function next(){if(cur<STEPS.length-1){cur++;render(cur);}}
+function prev(){if(cur>0){cur--;render(cur);}}
+render(0);
+</script>
+
+
+</body></html>
